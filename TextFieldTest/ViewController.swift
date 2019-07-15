@@ -57,6 +57,45 @@ class TestTextField: UITextField {
     
 }
 
+class TestView: UIView {
+    
+    var currentCopyText: String?
+    
+    override var canBecomeFirstResponder: Bool {
+        return true
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let touch = touches.first {
+            let point = touch.location(in: self)
+            for subview in self.subviews {
+                let frame = subview.frame
+                if let textField = subview as? UITextField, frame.contains(point) {
+                    self.becomeFirstResponder()
+                    self.currentCopyText = textField.text
+                    let menu = UIMenuController.shared
+                    menu.setTargetRect(frame, in: self)
+                    menu.setMenuVisible(true, animated: true)
+                    menu.update()
+                }
+            }
+        }
+    }
+    override func copy(_ sender: Any?) {
+        let board = UIPasteboard.general
+        board.string = currentCopyText
+        self.resignFirstResponder()
+    }
+    
+    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        if action == #selector(UIResponder.copy(_:)) {
+            return self.currentCopyText != nil
+        } else {
+            return false
+        }
+    }
+}
+
 class ViewController: UIViewController {
 
     override func viewDidLoad() {
